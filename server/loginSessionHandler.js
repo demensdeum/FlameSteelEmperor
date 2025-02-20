@@ -23,7 +23,10 @@ class LoginSessionHandler {
             throw new Error('Invalid passcode');
         }
 
-        const commander = new Commander(loginName);
+        // Get or create commander
+        const commander = this.universe.getCommander(loginName) || 
+                          this.universe.createCommander(loginName);
+        
         const login = new Login(commander, passcode);
         const sessionKey = login.getSessionKey();
         this.logins.set(sessionKey, login);
@@ -78,8 +81,9 @@ class LoginSessionHandler {
             throw new Error('User already exists');
         }
 
-        // Register the user
+        // Register the user and create commander
         this.registeredUsers.set(loginName, passcode);
+        this.universe.createCommander(loginName);
         return true;
     }
 

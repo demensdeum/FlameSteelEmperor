@@ -1,7 +1,7 @@
 const Resource = require('./resource');
 
 class Commander {
-    constructor(login, initialMoney = 0) {
+    constructor(login, initialMoney) {
         this.login = login;
         this.money = new Resource(initialMoney);
     }

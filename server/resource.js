@@ -1,5 +1,5 @@
 class Resource {
-    constructor(initialAmount = 1000) {
+    constructor(initialAmount) {
         if (initialAmount < 0) {
             throw new Error('Initial amount cannot be negative');
         }
