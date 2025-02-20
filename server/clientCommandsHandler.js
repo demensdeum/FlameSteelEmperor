@@ -1,18 +1,23 @@
+const TransfersHandler = require('./transfersHandler');
+
 class ClientCommandsHandler {
     static ClientCommandTypes = {
         LOGIN: 'login',
         LOGOUT: 'logout',
         SEND: 'send',
-        MESSAGES: 'messages'
+        MESSAGES: 'messages',
+        TRANSFER: 'transfer'
     };
 
     constructor(universe) {
         this.universe = universe;
+        this.transfers = new TransfersHandler(this.universe.loginSessionHandler);
         this.handlers = {
             [ClientCommandsHandler.ClientCommandTypes.LOGIN]: this.universe.loginSessionHandler.handleLogin.bind(this.universe.loginSessionHandler),
             [ClientCommandsHandler.ClientCommandTypes.LOGOUT]: this.universe.loginSessionHandler.handleLogout.bind(this.universe.loginSessionHandler),
             [ClientCommandsHandler.ClientCommandTypes.SEND]: this.universe.loginSessionHandler.handleSend.bind(this.universe.loginSessionHandler),
-            [ClientCommandsHandler.ClientCommandTypes.MESSAGES]: this.universe.loginSessionHandler.handleMessages.bind(this.universe.loginSessionHandler)
+            [ClientCommandsHandler.ClientCommandTypes.MESSAGES]: this.universe.loginSessionHandler.handleMessages.bind(this.universe.loginSessionHandler),
+            [ClientCommandsHandler.ClientCommandTypes.TRANSFER]: this.transfers.handleTransfer.bind(this.transfers)
         };
     }
 
