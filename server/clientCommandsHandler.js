@@ -1,5 +1,3 @@
-const LoginSessionHandler = require('./loginSessionHandler');
-
 class ClientCommandsHandler {
     static ClientCommandTypes = {
         LOGIN: 'login',
@@ -9,31 +7,39 @@ class ClientCommandsHandler {
     };
 
     constructor(universe) {
-        this.loginSessionHandler = new LoginSessionHandler(universe);
+        this.universe = universe;
         this.handlers = {
-            [ClientCommandsHandler.ClientCommandTypes.LOGIN]: this.loginSessionHandler.handleLogin.bind(this.loginSessionHandler),
-            [ClientCommandsHandler.ClientCommandTypes.LOGOUT]: this.loginSessionHandler.handleLogout.bind(this.loginSessionHandler),
-            [ClientCommandsHandler.ClientCommandTypes.SEND]: this.loginSessionHandler.handleSend.bind(this.loginSessionHandler),
-            [ClientCommandsHandler.ClientCommandTypes.MESSAGES]: this.loginSessionHandler.handleMessages.bind(this.loginSessionHandler)
+            [ClientCommandsHandler.ClientCommandTypes.LOGIN]: this.universe.loginSessionHandler.handleLogin.bind(this.universe.loginSessionHandler),
+            [ClientCommandsHandler.ClientCommandTypes.LOGOUT]: this.universe.loginSessionHandler.handleLogout.bind(this.universe.loginSessionHandler),
+            [ClientCommandsHandler.ClientCommandTypes.SEND]: this.universe.loginSessionHandler.handleSend.bind(this.universe.loginSessionHandler),
+            [ClientCommandsHandler.ClientCommandTypes.MESSAGES]: this.universe.loginSessionHandler.handleMessages.bind(this.universe.loginSessionHandler)
         };
     }
 
     handle(message) {
         try {
-            const data = JSON.parse(message);
+            console.log('ClientCommandsHandler received:', message);
+            // Message should already be an object at this point
+            const data = message;
+            console.log('Using data:', data);
             
             if (!data.type || !this.handlers[data.type]) {
+                console.log('Invalid message type:', data.type);
                 return {
                     type: 'error',
                     error: 'Invalid message type'
                 };
             }
 
-            return this.handlers[data.type](data);
+            console.log('Calling handler for type:', data.type);
+            const result = this.handlers[data.type](data);
+            console.log('Handler result:', result);
+            return result;
         } catch (error) {
+            console.error('Error in handle():', error);
             return {
                 type: 'error',
-                error: 'Invalid message format'
+                error: error.message || 'Invalid message format'
             };
         }
     }

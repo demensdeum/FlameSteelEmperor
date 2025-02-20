@@ -13,19 +13,35 @@ server.on('error', (err) => {
 });
 
 server.on('message', (msg, rinfo) => {
-    console.log(`Server received: ${msg} from ${rinfo.address}:${rinfo.port}`);
+    const msgStr = msg.toString();
+    console.log(`Server received: ${msgStr} from ${rinfo.address}:${rinfo.port}`);
     
     try {
-        const response = universe.clientCommandsHandler.handle(msg.toString());
+        // Parse incoming message
+        let data;
+        try {
+            data = JSON.parse(msgStr);
+            console.log('Parsed message:', data);
+        } catch (parseError) {
+            throw new Error('Invalid message format - expected JSON');
+        }
+
+        // Handle command
+        console.log('Handling command with type:', data.type);
+        const response = universe.clientCommandsHandler.handle(data);
+        console.log('Handler response:', response);
         const responseStr = JSON.stringify(response);
+        
+        // Send response
         server.send(responseStr, rinfo.port, rinfo.address, (err) => {
             if (err) console.error('Failed to send response:', err);
+            else console.log('Sent response:', responseStr);
         });
     } catch (error) {
-        console.error('Error handling message:', error);
+        console.error('Error handling message:', error.message);
         const errorResponse = JSON.stringify({
             type: 'error',
-            error: 'Internal server error'
+            error: error.message || 'Internal server error'
         });
         server.send(errorResponse, rinfo.port, rinfo.address, (err) => {
             if (err) console.error('Failed to send error response:', err);
