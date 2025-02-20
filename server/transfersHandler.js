@@ -32,7 +32,7 @@ class TransfersHandler {
 
     performTransfer(sender, recipient, amount) {
         try {
-            const result = sender.transferMoney(recipient, amount);
+            const result = sender.money.transfer(recipient.money, amount);
             return {
                 type: 'transfer',
                 message: `Successfully transferred ${amount} credits to ${recipient.getLogin()}`,

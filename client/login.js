@@ -6,10 +6,17 @@ class Login {
         this.login = null;
     }
 
-    async performLogin(login) {
+    async performLogin(login, passcode) {
+        // Require passcode
+        if (!passcode) {
+            console.error('Passcode is required for login');
+            return false;
+        }
+
         const loginCommand = {
             type: 'login',
-            login: login
+            login: login,
+            passcode: passcode
         };
 
         try {
@@ -62,6 +69,15 @@ class Login {
 
     getLogin() {
         return this.login;
+    }
+
+    setLogin(login) {
+        this.login = login;
+        this.loggedIn = true;
+    }
+
+    setSessionKey(sessionKey) {
+        this.sessionKey = sessionKey;
     }
 }
 

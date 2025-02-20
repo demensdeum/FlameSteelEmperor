@@ -7,7 +7,8 @@ class ClientCommandsHandler {
         SEND: 'send',
         MESSAGES: 'messages',
         TRANSFER: 'transfer',
-        STATUS: 'status'
+        STATUS: 'status',
+        REGISTER: 'register'
     };
 
     constructor(universe) {
@@ -19,7 +20,8 @@ class ClientCommandsHandler {
             [ClientCommandsHandler.ClientCommandTypes.SEND]: this.universe.loginSessionHandler.handleSend.bind(this.universe.loginSessionHandler),
             [ClientCommandsHandler.ClientCommandTypes.MESSAGES]: this.universe.loginSessionHandler.handleMessages.bind(this.universe.loginSessionHandler),
             [ClientCommandsHandler.ClientCommandTypes.TRANSFER]: this.transfers.handleTransfer.bind(this.transfers),
-            [ClientCommandsHandler.ClientCommandTypes.STATUS]: this.handleStatus.bind(this)
+            [ClientCommandsHandler.ClientCommandTypes.STATUS]: this.handleStatus.bind(this),
+            [ClientCommandsHandler.ClientCommandTypes.REGISTER]: this.universe.loginSessionHandler.handleRegister.bind(this.universe.loginSessionHandler)
         };
     }
 
@@ -48,7 +50,7 @@ class ClientCommandsHandler {
         return {
             type: 'status',
             login: commander.getLogin(),
-            money: commander.getMoney()
+            money: commander.money.get()
         };
     }
 

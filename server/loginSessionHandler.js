@@ -5,11 +5,26 @@ class LoginSessionHandler {
     constructor(universe) {
         this.universe = universe;
         this.logins = new Map(); // sessionKey -> Login
+        this.registeredUsers = new Map(); // login -> passcode
     }
 
-    login(loginName) {
+    login(loginName, passcode) {
+        // Require passcode
+        if (!passcode) {
+            throw new Error('Passcode is required');
+        }
+
+        // Check if user exists and passcode matches
+        const storedPasscode = this.registeredUsers.get(loginName);
+        if (!storedPasscode) {
+            throw new Error('User not registered');
+        }
+        if (storedPasscode !== passcode) {
+            throw new Error('Invalid passcode');
+        }
+
         const commander = new Commander(loginName);
-        const login = new Login(commander);
+        const login = new Login(commander, passcode);
         const sessionKey = login.getSessionKey();
         this.logins.set(sessionKey, login);
         return sessionKey;
@@ -49,6 +64,25 @@ class LoginSessionHandler {
         return login ? login.isValidSession() : false;
     }
 
+    register(loginName, passcode) {
+        // Require login and passcode
+        if (!loginName) {
+            throw new Error('Login is required');
+        }
+        if (!passcode) {
+            throw new Error('Passcode is required');
+        }
+
+        // Check if user already exists
+        if (this.registeredUsers.has(loginName)) {
+            throw new Error('User already exists');
+        }
+
+        // Register the user
+        this.registeredUsers.set(loginName, passcode);
+        return true;
+    }
+
     handleLogin(data) {
         if (!data.login) {
             return {
@@ -57,12 +91,26 @@ class LoginSessionHandler {
             };
         }
 
-        const sessionKey = this.login(data.login);
-        return {
-            type: 'login_response',
-            sessionKey: sessionKey,
-            success: true
-        };
+        if (!data.passcode) {
+            return {
+                type: 'error',
+                error: 'Passcode is required'
+            };
+        }
+
+        try {
+            const sessionKey = this.login(data.login, data.passcode);
+            return {
+                type: 'login_response',
+                sessionKey: sessionKey,
+                success: true
+            };
+        } catch (error) {
+            return {
+                type: 'error',
+                error: error.message
+            };
+        }
     }
 
     handleLogout(data) {
@@ -78,6 +126,35 @@ class LoginSessionHandler {
             type: 'logout_response',
             success: success
         };
+    }
+
+    handleRegister(data) {
+        if (!data.login) {
+            return {
+                type: 'error',
+                error: 'Login is required'
+            };
+        }
+
+        if (!data.passcode) {
+            return {
+                type: 'error',
+                error: 'Passcode is required'
+            };
+        }
+
+        try {
+            this.register(data.login, data.passcode);
+            return {
+                type: 'register_response',
+                success: true
+            };
+        } catch (error) {
+            return {
+                type: 'error',
+                error: error.message
+            };
+        }
     }
 
     handleSend(data) {

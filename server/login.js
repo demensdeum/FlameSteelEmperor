@@ -1,8 +1,9 @@
 const crypto = require('crypto');
 
 class Login {
-    constructor(commander) {
+    constructor(commander, passcode = '') {
         this.commander = commander;
+        this.passcode = passcode;
         this.sessionKey = this.generateSessionKey();
         this.active = true;
     }
@@ -17,6 +18,10 @@ class Login {
 
     getCommander() {
         return this.commander;
+    }
+
+    getPasscode() {
+        return this.passcode;
     }
 
     isValidSession() {
