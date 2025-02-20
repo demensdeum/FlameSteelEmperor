@@ -85,16 +85,16 @@ const commandHandlers = {
     },
     async help() {
         console.log('Available commands:');
-        console.log('  register <username> <passcode> - Register a new user');
-        console.log('  login <username> <passcode> - Log in to the game');
-        console.log('  logout - Log out of the game');
-        console.log('  send <message> - Send a message');
-        console.log('  messages - List all messages');
-        console.log('  transfer <recipient> <amount> - Transfer credits to another user');
-        console.log('  status - Show current commander status');
-        console.log('  help - Show this help');
-        console.log('  exit - Exit the program');
-        console.log('  buy <itemName> - Buy an item from the shop');
+        console.log('  register <username> <passcode>  - Register a new user');
+        console.log('  login <username> <passcode>     - Log in to the game');
+        console.log('  logout                          - Log out of the game');
+        console.log('  status                          - Show your current status');
+        console.log('  send <recipient> <amount>       - Send resources to another player');
+        console.log('  messages                        - Check your messages');
+        console.log('  transfer <recipient> <amount>   - Transfer resources');
+        console.log('  buy <item>                      - Buy an item from the shop');
+        console.log('  help                            - Show this help menu');
+        console.log('  exit                            - Exit the game');
     },
     async transfer(args) {
         if (!login.isLoggedIn()) {
