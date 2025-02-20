@@ -1,40 +1,52 @@
 const Commander = require('./commander');
+const Login = require('./login');
+
 class LoginSessionHandler {
     constructor(universe) {
         this.universe = universe;
+        this.logins = new Map(); // sessionKey -> Login
     }
 
-    login(login) {
-        const commander = new Commander(login);
-        const sessionKey = commander.getSessionKey();
-        this.universe.commanders[sessionKey] = commander;
+    login(loginName) {
+        const commander = new Commander(loginName);
+        const login = new Login(commander);
+        const sessionKey = login.getSessionKey();
+        this.logins.set(sessionKey, login);
         return sessionKey;
     }
 
     logout(sessionKey) {
-        if (this.universe.commanders[sessionKey]) {
-            delete this.universe.commanders[sessionKey];
+        const login = this.getLogin(sessionKey);
+        if (login) {
+            login.deactivate();
+            this.logins.delete(sessionKey);
             return true;
         }
         return false;
     }
 
+    getLogin(sessionKey) {
+        return this.logins.get(sessionKey) || null;
+    }
+
     getCommander(sessionKey) {
-        return this.universe.commanders[sessionKey] || null;
+        const login = this.getLogin(sessionKey);
+        return login ? login.getCommander() : null;
     }
 
     getAllCommanders() {
-        return Object.values(this.universe.commanders);
+        return Array.from(this.logins.values()).map(login => login.getCommander());
     }
 
-    getCommanderByLogin(login) {
-        return Object.values(this.universe.commanders).find(
-            commander => commander.getLogin() === login
-        );
+    getCommanderByLogin(loginName) {
+        return Array.from(this.logins.values())
+            .map(login => login.getCommander())
+            .find(commander => commander.getLogin() === loginName);
     }
 
     isValidSession(sessionKey) {
-        return sessionKey in this.universe.commanders;
+        const login = this.getLogin(sessionKey);
+        return login ? login.isValidSession() : false;
     }
 
     handleLogin(data) {

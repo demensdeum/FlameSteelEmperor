@@ -4,7 +4,6 @@ const LoginSessionHandler = require('./loginSessionHandler');
 
 class Universe {
     constructor() {
-        this.commanders = {};
         this.messages = [];
         this.messagesHandler = new MessagesHandler(this);
         this.loginSessionHandler = new LoginSessionHandler(this);
