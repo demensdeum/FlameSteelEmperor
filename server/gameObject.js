@@ -1,15 +1,23 @@
 const crypto = require('crypto');
 
 class GameObject {
-    constructor(type, name) {
+    constructor(name, type) {
+        // Validate inputs
+        if (!name || typeof name !== 'string') {
+            throw new Error('Name must be a non-empty string');
+        }
+        if (!type || typeof type !== 'string') {
+            throw new Error('Type must be a non-empty string');
+        }
+
         // Generate a unique ID for the game object
         this.id = crypto.randomBytes(8).toString('hex');
         
-        // Type of the game object (e.g., 'commander', 'item', 'location')
-        this.type = type;
-        
         // Name of the game object
         this.name = name;
+
+        // Type of the game object (e.g., 'commander', 'item', 'location')
+        this.type = type;
         
         // Timestamp of object creation
         this.createdAt = new Date();

@@ -4,7 +4,7 @@ class Login {
     constructor(commander, passcode = '') {
         this.commander = commander;
         this.passcode = passcode;
-        this.sessionKey = this.generateSessionKey();
+        this.regenerateSessionKey();
         this.active = true;
     }
 
@@ -13,6 +13,11 @@ class Login {
     }
 
     getSessionKey() {
+        return this.sessionKey;
+    }
+
+    regenerateSessionKey() {
+        this.sessionKey = this.generateSessionKey();
         return this.sessionKey;
     }
 

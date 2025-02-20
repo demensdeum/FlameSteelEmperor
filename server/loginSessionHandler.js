@@ -5,6 +5,7 @@ class LoginSessionHandler {
     constructor(universe) {
         this.universe = universe;
         this.logins = new Map(); // sessionKey -> Login
+        this.loginsByUsername = new Map(); // username -> Login
         this.registeredUsers = new Map(); // login -> passcode
     }
 
@@ -27,9 +28,32 @@ class LoginSessionHandler {
         const commander = this.universe.getCommander(loginName) || 
                           this.universe.createCommander(loginName);
         
-        const login = new Login(commander, passcode);
-        const sessionKey = login.getSessionKey();
-        this.logins.set(sessionKey, login);
+        // Check if an existing login for this username already exists
+        let existingLogin = this.loginsByUsername.get(loginName);
+
+        let login;
+        let sessionKey;
+        if (existingLogin) {
+            // Reuse existing login
+            login = existingLogin;
+            login.active = true;
+            
+            // Generate a new session key
+            sessionKey = login.regenerateSessionKey();
+            
+            // Remove old session key mapping
+            this.logins.delete(login.getSessionKey());
+            
+            // Update with new session key
+            this.logins.set(sessionKey, login);
+        } else {
+            // Create new login
+            login = new Login(commander, passcode);
+            sessionKey = login.getSessionKey();
+            this.logins.set(sessionKey, login);
+            this.loginsByUsername.set(loginName, login);
+        }
+
         return sessionKey;
     }
 
@@ -37,28 +61,32 @@ class LoginSessionHandler {
         const login = this.getLogin(sessionKey);
         if (login) {
             login.deactivate();
+            // Remove from both maps
             this.logins.delete(sessionKey);
+            this.loginsByUsername.delete(login.commander.getLogin());
             return true;
         }
         return false;
     }
 
     getLogin(sessionKey) {
-        return this.logins.get(sessionKey) || null;
+        const login = this.logins.get(sessionKey);
+        // Only return login if it's active
+        return login && login.isValidSession() ? login : null;
     }
 
     getCommander(sessionKey) {
         const login = this.getLogin(sessionKey);
-        return login ? login.getCommander() : null;
+        return login ? login.commander : null;
     }
 
     getAllCommanders() {
-        return Array.from(this.logins.values()).map(login => login.getCommander());
+        return Array.from(this.logins.values()).map(login => login.commander);
     }
 
     getCommanderByLogin(loginName) {
         return Array.from(this.logins.values())
-            .map(login => login.getCommander())
+            .map(login => login.commander)
             .find(commander => commander.getLogin() === loginName);
     }
 
@@ -68,22 +96,13 @@ class LoginSessionHandler {
     }
 
     register(loginName, passcode) {
-        // Require login and passcode
-        if (!loginName) {
-            throw new Error('Login is required');
-        }
-        if (!passcode) {
-            throw new Error('Passcode is required');
-        }
-
         // Check if user already exists
         if (this.registeredUsers.has(loginName)) {
-            throw new Error('User already exists');
+            throw new Error('User already registered');
         }
 
-        // Register the user and create commander
+        // Store user credentials
         this.registeredUsers.set(loginName, passcode);
-        this.universe.createCommander(loginName);
         return true;
     }
 

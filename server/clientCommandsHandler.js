@@ -1,4 +1,5 @@
 const TransfersHandler = require('./transfersHandler');
+const LoginSessionHandler = require('./loginSessionHandler');
 
 class ClientCommandsHandler {
     static ClientCommandTypes = {
@@ -8,76 +9,52 @@ class ClientCommandsHandler {
         MESSAGES: 'messages',
         TRANSFER: 'transfer',
         STATUS: 'status',
-        REGISTER: 'register'
+        REGISTER: 'register',
+        BUY: 'buy'
     };
 
     constructor(universe) {
         this.universe = universe;
-        this.transfers = new TransfersHandler(this.universe.loginSessionHandler);
-        this.handlers = {
-            [ClientCommandsHandler.ClientCommandTypes.LOGIN]: this.universe.loginSessionHandler.handleLogin.bind(this.universe.loginSessionHandler),
-            [ClientCommandsHandler.ClientCommandTypes.LOGOUT]: this.universe.loginSessionHandler.handleLogout.bind(this.universe.loginSessionHandler),
-            [ClientCommandsHandler.ClientCommandTypes.SEND]: this.universe.loginSessionHandler.handleSend.bind(this.universe.loginSessionHandler),
-            [ClientCommandsHandler.ClientCommandTypes.MESSAGES]: this.universe.loginSessionHandler.handleMessages.bind(this.universe.loginSessionHandler),
-            [ClientCommandsHandler.ClientCommandTypes.TRANSFER]: this.transfers.handleTransfer.bind(this.transfers),
-            [ClientCommandsHandler.ClientCommandTypes.STATUS]: this.handleStatus.bind(this),
-            [ClientCommandsHandler.ClientCommandTypes.REGISTER]: this.universe.loginSessionHandler.handleRegister.bind(this.universe.loginSessionHandler)
-        };
-    }
+        this.transfersHandler = universe.transfersHandler;
+        this.loginSessionHandler = universe.loginSessionHandler;
 
-    handleStatus(data) {
-        console.log('Handling status:', data);
-        const { sessionKey } = data;
-        
-        // Validate session
-        if (!this.universe.loginSessionHandler.isValidSession(sessionKey)) {
-            return {
-                type: 'error',
-                error: 'Invalid session'
-            };
-        }
-
-        // Get commander
-        const commander = this.universe.loginSessionHandler.getCommander(sessionKey);
-        if (!commander) {
-            return {
-                type: 'error',
-                error: 'Commander not found'
-            };
-        }
-
-        // Return commander status
-        return {
-            type: 'status',
-            login: commander.getLogin(),
-            money: commander.money.get()
+        this.commands = {
+            [ClientCommandsHandler.ClientCommandTypes.LOGIN]: this.loginSessionHandler.handleLogin.bind(this.loginSessionHandler),
+            [ClientCommandsHandler.ClientCommandTypes.LOGOUT]: this.loginSessionHandler.handleLogout.bind(this.loginSessionHandler),
+            [ClientCommandsHandler.ClientCommandTypes.SEND]: this.loginSessionHandler.handleSend.bind(this.loginSessionHandler),
+            [ClientCommandsHandler.ClientCommandTypes.MESSAGES]: this.loginSessionHandler.handleMessages.bind(this.loginSessionHandler),
+            [ClientCommandsHandler.ClientCommandTypes.TRANSFER]: this.transfersHandler.handleTransfer.bind(this.transfersHandler),
+            [ClientCommandsHandler.ClientCommandTypes.STATUS]: this.universe.statusHandler.handleStatus.bind(this.universe.statusHandler),
+            [ClientCommandsHandler.ClientCommandTypes.REGISTER]: this.loginSessionHandler.handleRegister.bind(this.loginSessionHandler),
+            [ClientCommandsHandler.ClientCommandTypes.BUY]: this.universe.shopHandler.handleBuy.bind(this.universe.shopHandler)
         };
     }
 
     handle(message) {
         try {
             console.log('ClientCommandsHandler received:', message);
-            // Message should already be an object at this point
-            const data = message;
-            console.log('Using data:', data);
             
-            if (!data.type || !this.handlers[data.type]) {
-                console.log('Invalid message type:', data.type);
-                return {
-                    type: 'error',
-                    error: 'Invalid message type'
-                };
+            // Validate message type
+            if (!message.type) {
+                console.log('ClientCommandsHandler: No message type');
+                return { type: 'error', error: 'Invalid message format' };
             }
 
-            console.log('Calling handler for type:', data.type);
-            const result = this.handlers[data.type](data);
-            console.log('Handler result:', result);
-            return result;
+            // Find the appropriate command handler
+            const commandHandler = this.commands[message.type];
+            if (!commandHandler) {
+                console.log(`ClientCommandsHandler: No handler for type ${message.type}`);
+                return { type: 'error', error: `Unknown command type: ${message.type}` };
+            }
+
+            // Execute the command handler
+            console.log(`ClientCommandsHandler: Executing handler for ${message.type}`);
+            return commandHandler(message);
         } catch (error) {
-            console.error('Error in handle():', error);
+            console.error('ClientCommandsHandler error:', error);
             return {
                 type: 'error',
-                error: error.message || 'Invalid message format'
+                error: error.message || 'Unknown error'
             };
         }
     }

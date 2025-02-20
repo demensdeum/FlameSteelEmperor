@@ -1,7 +1,11 @@
 const ClientCommandsHandler = require('./clientCommandsHandler');
 const MessagesHandler = require('./messagesHandler');
 const LoginSessionHandler = require('./loginSessionHandler');
+const TransfersHandler = require('./transfersHandler');
+const Shop = require('./shop');
 const Commander = require('./commander');
+const StatusHandler = require('./statusHandler');
+const ShopHandler = require('./shopHandler');
 
 class Universe {
     constructor() {
@@ -9,6 +13,10 @@ class Universe {
         this.commanders = new Map(); // login -> Commander
         this.messagesHandler = new MessagesHandler(this);
         this.loginSessionHandler = new LoginSessionHandler(this);
+        this.transfersHandler = new TransfersHandler(this);
+        this.shop = new Shop();
+        this.statusHandler = new StatusHandler(this);
+        this.shopHandler = new ShopHandler(this);
         this.clientCommandsHandler = new ClientCommandsHandler(this);
     }
 
@@ -26,6 +34,10 @@ class Universe {
 
     getCommander(login) {
         return this.commanders.get(login) || null;
+    }
+
+    getShop() {
+        return this.shop;
     }
 }
 

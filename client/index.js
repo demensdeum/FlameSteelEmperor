@@ -94,6 +94,7 @@ const commandHandlers = {
         console.log('  status - Show current commander status');
         console.log('  help - Show this help');
         console.log('  exit - Exit the program');
+        console.log('  buy <itemName> - Buy an item from the shop');
     },
     async transfer(args) {
         if (!login.isLoggedIn()) {
@@ -128,25 +129,41 @@ const commandHandlers = {
             console.log('Transfer failed:', error.message);
         }
     },
-    async status() {
+    async status(args) {
         if (!login.isLoggedIn()) {
             console.log('Please login first.');
             return;
         }
+
         try {
             const response = await client.send({
                 type: 'status',
                 sessionKey: login.getSessionKey()
             });
 
-            if (response.type === 'status') {
-                console.log(`Login: ${response.login}`);
-                console.log(`Credits: ${response.money}`);
-            } else if (response.type === 'error') {
-                console.log('Status check failed:', response.error);
+            if (response.type === 'error') {
+                console.log('Error:', response.error);
+                return;
+            }
+
+            // Display commander status
+            console.log(`Login: ${response.login}`);
+            console.log(`Money: ${response.money} credits`);
+
+            // Display owned objects
+            if (response.ownedObjects && response.ownedObjects.length > 0) {
+                console.log('\nOwned Objects:');
+                response.ownedObjects.forEach(obj => {
+                    const priceInfo = obj.price !== undefined 
+                        ? ` - Price: ${obj.price} credits` 
+                        : '';
+                    console.log(`- ${obj.name} (${obj.type})${priceInfo}`);
+                });
+            } else {
+                console.log('\nNo owned objects.');
             }
         } catch (error) {
-            console.log('Status check failed:', error.message);
+            console.log('Failed to get status:', error.message);
         }
     },
     async register(args) {
@@ -178,6 +195,35 @@ const commandHandlers = {
         rl.close();
         client.close();
         process.exit(0);
+    },
+    async buy(args) {
+        if (!login.isLoggedIn()) {
+            console.log('Please login first.');
+            return;
+        }
+        if (args.length < 1) {
+            console.log('Usage: buy <itemName>');
+            return;
+        }
+
+        // Join all arguments as the item name to support multi-word names
+        const itemName = args.join(' ');
+        
+        try {
+            const response = await client.send({
+                type: 'buy',
+                sessionKey: login.getSessionKey(),
+                itemName: itemName
+            });
+
+            if (response.type === 'error') {
+                console.log('Error:', response.error);
+            } else {
+                console.log(`Successfully bought ${response.itemName} (${response.itemType}) for ${response.price} credits`);
+            }
+        } catch (error) {
+            console.log('Failed to buy item:', error.message);
+        }
     }
 };
 
