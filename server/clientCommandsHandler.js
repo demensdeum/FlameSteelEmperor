@@ -6,7 +6,8 @@ class ClientCommandsHandler {
         LOGOUT: 'logout',
         SEND: 'send',
         MESSAGES: 'messages',
-        TRANSFER: 'transfer'
+        TRANSFER: 'transfer',
+        STATUS: 'status'
     };
 
     constructor(universe) {
@@ -17,7 +18,37 @@ class ClientCommandsHandler {
             [ClientCommandsHandler.ClientCommandTypes.LOGOUT]: this.universe.loginSessionHandler.handleLogout.bind(this.universe.loginSessionHandler),
             [ClientCommandsHandler.ClientCommandTypes.SEND]: this.universe.loginSessionHandler.handleSend.bind(this.universe.loginSessionHandler),
             [ClientCommandsHandler.ClientCommandTypes.MESSAGES]: this.universe.loginSessionHandler.handleMessages.bind(this.universe.loginSessionHandler),
-            [ClientCommandsHandler.ClientCommandTypes.TRANSFER]: this.transfers.handleTransfer.bind(this.transfers)
+            [ClientCommandsHandler.ClientCommandTypes.TRANSFER]: this.transfers.handleTransfer.bind(this.transfers),
+            [ClientCommandsHandler.ClientCommandTypes.STATUS]: this.handleStatus.bind(this)
+        };
+    }
+
+    handleStatus(data) {
+        console.log('Handling status:', data);
+        const { sessionKey } = data;
+        
+        // Validate session
+        if (!this.universe.loginSessionHandler.isValidSession(sessionKey)) {
+            return {
+                type: 'error',
+                error: 'Invalid session'
+            };
+        }
+
+        // Get commander
+        const commander = this.universe.loginSessionHandler.getCommander(sessionKey);
+        if (!commander) {
+            return {
+                type: 'error',
+                error: 'Commander not found'
+            };
+        }
+
+        // Return commander status
+        return {
+            type: 'status',
+            login: commander.getLogin(),
+            money: commander.getMoney()
         };
     }
 

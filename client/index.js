@@ -91,6 +91,7 @@ async function handleCommand(command) {
                 console.log('  send <message> - Send a message');
                 console.log('  messages - List all messages');
                 console.log('  transfer <recipient> <amount> - Transfer credits to another user');
+                console.log('  status - Show current commander status');
                 console.log('  help - Show this help');
                 console.log('  exit - Exit the program');
                 break;
@@ -126,6 +127,28 @@ async function handleCommand(command) {
                     }
                 } catch (error) {
                     console.log('Transfer failed:', error.message);
+                }
+                break;
+
+            case 'status':
+                if (!login.isLoggedIn()) {
+                    console.log('Please login first.');
+                    return;
+                }
+                try {
+                    const response = await client.send({
+                        type: 'status',
+                        sessionKey: login.getSessionKey()
+                    });
+
+                    if (response.type === 'status') {
+                        console.log(`Login: ${response.login}`);
+                        console.log(`Credits: ${response.money}`);
+                    } else if (response.type === 'error') {
+                        console.log('Status check failed:', response.error);
+                    }
+                } catch (error) {
+                    console.log('Status check failed:', error.message);
                 }
                 break;
 
