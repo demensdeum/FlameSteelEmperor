@@ -4,10 +4,10 @@ A multiplayer strategy game of resource management, trade, and conquest.
 
 ## Game Artwork
 
-![Art 1](/art1.jpg)
-![Art 2](/art2.jpg)
-![Art 3](/art3.jpg)
-![Art 4](/art4.jpg)
+![Art 1](art1.jpeg)
+![Art 2](art2.jpeg)
+![Art 3](art3.jpeg)
+![Art 4](art4.jpeg)
 
 ## About the Game
 
